@@ -11,7 +11,16 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    PopulateMailsHistory();
+}
 
+
+MainWindow::MainWindow(QWidget *parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+    , m_smtp_client(smtp_client)
+{
+    ui->setupUi(this);
     PopulateMailsHistory();
 }
 
@@ -137,6 +146,7 @@ void MainWindow::PopulateMailsHistory()
 
 void MainWindow::on_SendButton_released()
 {
+    ISXMM::MailMessageBuilder builder;
     static QRegularExpression s_split_regex("\\s*,\\s*|\\s+");
 
     if (!CheckEmails(ui->EmailLine)) return;
@@ -145,12 +155,16 @@ void MainWindow::on_SendButton_released()
     QStringList EmailList = Recipients.split(s_split_regex, Qt::SkipEmptyParts);
 
     QString LetterSubject = ui->SubjectLine->text();
+    builder.SetSubject(LetterSubject.toStdString());
     QString LetterBody = ui->LetterBodyText->toPlainText();
+    builder.SetBody(LetterBody.toStdString());
 
+    builder.SetFrom("romanbychko84@gmail.com");
     for (const QString& Recipient : EmailList)
     {
         QDate CurrentDate = QDate::currentDate();
         LetterStruct Letter(m_current_user, Recipient, CurrentDate, LetterSubject, LetterBody);
+        builder.AddTo(Recipient.toStdString());
 
         QString FileName = Letter.GenerateFileName();
         QString FullFileName = m_temp_file_path + FileName;
@@ -160,6 +174,7 @@ void MainWindow::on_SendButton_released()
         WriteLettersToFile(Letters, FullFileName);
     }
 
+    m_smtp_client.lock()->AsyncSendMail(builder.Build()).get();
     CleanNewLetterFields();
 }
 

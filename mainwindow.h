@@ -5,6 +5,11 @@
 #include <QMainWindow>
 #include <qlineedit.h>
 
+#include <memory>
+#include <boost/asio.hpp>
+
+#include <SmtpClient.h>
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -28,8 +33,10 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget *parent=nullptr);
+    MainWindow(QWidget *parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client);
     ~MainWindow();
+    std::weak_ptr<ISXSC::SmtpClient> m_smtp_client;
 
 private slots:
 

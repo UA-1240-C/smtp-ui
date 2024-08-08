@@ -54,7 +54,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="MP_Login">
        <property name="sizePolicy">
@@ -641,7 +641,7 @@ border: 0px solid white;</string>
                         <x>0</x>
                         <y>0</y>
                         <width>228</width>
-                        <height>352</height>
+                        <height>351</height>
                        </rect>
                       </property>
                       <property name="maximumSize">
@@ -1418,7 +1418,7 @@ QPushButton:pressed
      <x>0</x>
      <y>0</y>
      <width>698</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

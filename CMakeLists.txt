@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 
 project(SMTP-Full VERSION 0.1 LANGUAGES CXX)
 
@@ -11,6 +11,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    client
+    GIT_REPOSITORY https://github.com/UA-1240-C/smtp-client
+    GIT_TAG       dev-lib)
+
+FetchContent_MakeAvailable(client)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -46,6 +55,11 @@ else()
 endif()
 
 target_link_libraries(SMTP-Full PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(SMTP-Full PUBLIC client)
+
+# target_include_directories(SMTP-Full PUBLIC build/Desktop_Qt_6_7_2-Debug/_deps/client-src/include/)
+
+# target_include_directories(SMTP-Full PUVLIC build/Desktop_Qt_6_7_2-Debug/_deps/client-src/libs/
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
