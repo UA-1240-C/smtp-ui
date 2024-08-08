@@ -731,7 +731,7 @@ margin-right: 11px;</string>
           <item>
            <widget class="QStackedWidget" name="LetterTypeStack">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="LTP_New">
              <layout class="QVBoxLayout" name="verticalLayout">

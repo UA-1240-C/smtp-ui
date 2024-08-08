@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QStringList>
 #include <QRegularExpression>
+#include <QScrollBar>
 #include "Custom/Mails/mailhistoryunit.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -102,7 +103,7 @@ void MainWindow::SpawnNewHistoryUnit(const LetterStruct& Letter)
         layout->insertWidget(0, new_history_unit);
     }
 
-    connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgets(QVector<LetterStruct>)));
+    connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgetClicked(QVector<LetterStruct>)));
 }
 
 void MainWindow::SpawnNewHistoryUnit(const QVector<LetterStruct>& Letters)
@@ -111,7 +112,7 @@ void MainWindow::SpawnNewHistoryUnit(const QVector<LetterStruct>& Letters)
     ui->MailHistoryScrollArea->layout()->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     ui->MailHistoryScrollArea->layout()->addWidget(new_history_unit);
 
-    connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgets(QVector<LetterStruct>)));
+    connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgetClicked(QVector<LetterStruct>)));
 }
 
 void MainWindow::PopulateMailsHistory()
@@ -152,6 +153,8 @@ void MainWindow::on_SendButton_released()
         QDate CurrentDate = QDate::currentDate();
         LetterStruct Letter(m_current_user, Recipient, CurrentDate, LetterSubject, LetterBody);
 
+        SendLetter(Letter);
+
         QString FileName = Letter.GenerateFileName();
         QString FullFileName = m_temp_file_path + FileName;
 
@@ -161,6 +164,11 @@ void MainWindow::on_SendButton_released()
     }
 
     CleanNewLetterFields();
+}
+
+void MainWindow::SendLetter(const LetterStruct& Letter)
+{
+
 }
 
 bool MainWindow::WriteLettersToFile(const QVector<LetterStruct>& Letters, const QString& full_file_name)
@@ -229,21 +237,27 @@ QVector<LetterStruct> MainWindow::ReadLettersFromFile(const QString& full_file_n
     return Letters;
 }
 
-void MainWindow::HistoryWidgets(QVector<LetterStruct> related_letters)
+bool MainWindow::AppendLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName)
+{
+    QVector<LetterStruct> existing_letters = ReadLettersFromFile(FullFileName);
+
+    existing_letters.append(Letters);
+
+    WriteLettersToFile(existing_letters, FullFileName);
+
+    return true;
+}
+
+void MainWindow::HistoryWidgetClicked(QVector<LetterStruct> related_letters)
 {
     if (!related_letters.isEmpty())
     {
-        QString full_representation{};
-        for (int i = 0; i < related_letters.size(); i++)
+        m_temp_current_history_unit = qobject_cast<MailHistoryUnit*>(sender());
+        if (m_temp_current_history_unit)
         {
-            full_representation += (QString)related_letters[i];
-            if (i != related_letters.size() - 1)
-            {
-                full_representation += "\n--------------------------------\n";
-            }
+            ui->LetterHistoryText->setText(m_temp_current_history_unit->GetFullTextRepresentation());
+            ui->LetterTypeStack->setCurrentIndex((int)ELetterPagesIndex::ReplyPage);
         }
-        ui->LetterHistoryText->setText(full_representation);
-        ui->LetterTypeStack->setCurrentIndex((int)ELetterPagesIndex::ReplyPage);
     }
 }
 
@@ -264,6 +278,41 @@ void MainWindow::on_NewLetterButton_released()
 
 void MainWindow::on_SendReplyButton_released()
 {
+    if (m_temp_current_history_unit)
+    {
+        const QVector<LetterStruct>& current_letters = m_temp_current_history_unit->get_letters();
+        if (!current_letters.isEmpty())
+        {
+            QString first_file_name{};
+            QString recipient_email{};
+            for (const auto& letter : current_letters)
+            {
+                if (first_file_name.isEmpty())
+                {
+                    first_file_name = letter.GenerateFileName();
+                }
 
+                if (letter.recipient != m_current_user)
+                {
+                    recipient_email = letter.recipient;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            QString letter_body = ui->ReplyLine->text();
+            LetterStruct letter{m_current_user, recipient_email, QDate::currentDate(), "Reply", letter_body};
+
+            SendLetter(letter);
+            AppendLettersToFile(QVector<LetterStruct>{letter}, m_temp_file_path + first_file_name);
+
+            m_temp_current_history_unit->Append(QVector<LetterStruct>{letter});
+            ui->LetterHistoryText->setText(m_temp_current_history_unit->GetFullTextRepresentation());
+
+            int max = ui->LetterHistoryText->verticalScrollBar()->maximum();
+            ui->LetterHistoryText->verticalScrollBar()->setValue(max);
+        }
+    }
 }
 

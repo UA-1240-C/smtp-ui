@@ -21,12 +21,12 @@ struct LetterStruct
     QString subject{};
     QString body{};
 
-    inline QString GenerateFileName()
+    inline QString GenerateFileName() const
     {
         return QString(sender + "_" + recipient + "_" + timestamp.toString("dd-MM-yyyy") + ".txt");
     }
 
-    operator QString()
+    operator QString() const
     {
         return "From: " + sender + "\nTo: " + recipient + "\nSent at: " + timestamp.toString() + "\nSubject: " + subject + "\n\n" + body;
     }
@@ -54,6 +54,12 @@ public:
     MailHistoryUnit(const LetterStruct& Letter, QWidget *parent = nullptr);
     MailHistoryUnit(const QVector<LetterStruct>& Letters, QWidget *parent = nullptr);
     ~MailHistoryUnit();
+
+    const QVector<LetterStruct>& get_letters() const;
+
+    QString GetFullTextRepresentation() const;
+
+    void Append(const QVector<LetterStruct>& NewLetters);
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;

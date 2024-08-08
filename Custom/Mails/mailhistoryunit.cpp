@@ -40,6 +40,30 @@ MailHistoryUnit::MailHistoryUnit(const QVector<LetterStruct> &Letters, QWidget *
     m_related_letters.append(Letters);
 }
 
+const QVector<LetterStruct>& MailHistoryUnit::get_letters() const
+{
+    return m_related_letters;
+}
+
+QString MailHistoryUnit::GetFullTextRepresentation() const
+{
+    QString res;
+    for (int i = 0; i < m_related_letters.size(); i++)
+    {
+        res += (const QString)m_related_letters[i];
+        if (i != m_related_letters.size() - 1)
+        {
+            res += "\n--------------------------------\n";
+        }
+    }
+    return res;
+}
+
+void MailHistoryUnit::Append(const QVector<LetterStruct>& NewLetters)
+{
+    m_related_letters.append(NewLetters);
+}
+
 bool MailHistoryUnit::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == this && event->type() == QEvent::MouseButtonRelease)

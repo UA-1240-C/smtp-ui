@@ -43,7 +43,7 @@ private slots:
 
     void on_NewLetterButton_released();
 
-    void HistoryWidgets(QVector<LetterStruct> RelatedLetters);
+    void HistoryWidgetClicked(QVector<LetterStruct> RelatedLetters);
 
     void on_SendReplyButton_released();
 
@@ -53,6 +53,8 @@ private:
     bool CheckEmails(const QLineEdit* Container);
     void CleanNewLetterFields();
 
+    void SendLetter(const LetterStruct& Letter);
+
     // and connect the signals
     void SpawnNewHistoryUnit(const LetterStruct& Letter);
     // and connect the signals
@@ -61,9 +63,10 @@ private:
 
     bool WriteLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName);
     QVector<LetterStruct> ReadLettersFromFile(const QString& FullFileName);
+    bool AppendLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName);
 
     QString m_current_user{"kormak1752@gmail.com"};
     const QString m_temp_file_path{R"*(D:\SoftServe\Temp\)*"};
-    QString m_temp_current_history_unit{};
+    MailHistoryUnit* m_temp_current_history_unit{};
 };
 #endif // MAINWINDOW_H
