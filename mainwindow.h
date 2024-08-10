@@ -35,8 +35,6 @@ private slots:
 
     void on_LogInButton_released();
 
-    void on_AttachFileButton_released();
-
     void on_EmailLine_editingFinished();
 
     void on_SendButton_released();
@@ -46,6 +44,8 @@ private slots:
     void HistoryWidgetClicked(QVector<LetterStruct> RelatedLetters);
 
     void on_SendReplyButton_released();
+
+    void SelectLetters_Slot();
 
 private:
     Ui::MainWindow *ui;
@@ -61,12 +61,15 @@ private:
     void SpawnNewHistoryUnit(const QVector<LetterStruct>& Letter);
     void PopulateMailsHistory();
 
-    bool WriteLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName);
+    bool WriteLettersToFile(const QVector<LetterStruct>& letters, const QString& FullFileName);
     QVector<LetterStruct> ReadLettersFromFile(const QString& FullFileName);
     bool AppendLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName);
 
+    void SelectFilesAndRefreshLabels();
+
     QString m_current_user{"kormak1752@gmail.com"};
     const QString m_temp_file_path{R"*(D:\SoftServe\Temp\)*"};
-    MailHistoryUnit* m_temp_current_history_unit{};
+    QVector<QString> m_currently_selected_files{};
+    MailHistoryUnit* m_current_history_unit{};
 };
 #endif // MAINWINDOW_H

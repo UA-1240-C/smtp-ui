@@ -10,14 +10,14 @@ MailHistoryUnit::MailHistoryUnit(QWidget *parent)
     this->installEventFilter(this);
 }
 
-MailHistoryUnit::MailHistoryUnit(const QString& sender, const QString& recipient, const QString& subject, const QString& letterBody, QWidget *parent)
+MailHistoryUnit::MailHistoryUnit(const QString& sender, const QString& recipient, const QString& subject, const QString& letterBody, const QVector<QString> files_paths, QWidget *parent)
     : MailHistoryUnit(parent)
 {
     ui->SenderEmailLabel->setText(recipient);
     ui->LetterSubjectLabel->setText(subject);
     ui->LetterBodyLabel->setText(letterBody);
 
-    m_related_letters.emplace_back(sender, recipient, QDate::currentDate(), subject, letterBody);
+    m_related_letters.emplace_back(sender, recipient, QDate::currentDate(), subject, letterBody, files_paths);
 }
 
 MailHistoryUnit::MailHistoryUnit(const LetterStruct& Letter, QWidget *parent)

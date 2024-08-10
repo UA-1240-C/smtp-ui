@@ -731,7 +731,7 @@ margin-right: 11px;</string>
           <item>
            <widget class="QStackedWidget" name="LetterTypeStack">
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="LTP_New">
              <layout class="QVBoxLayout" name="verticalLayout">
@@ -956,7 +956,7 @@ margin-right: 20px;</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QWidget" name="LetterManipulationWidget" native="true">
+                  <widget class="QWidget" name="N_LetterManipulationWidget" native="true">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -980,7 +980,7 @@ margin-right: 20px;</string>
                      <number>9</number>
                     </property>
                     <item>
-                     <widget class="QPushButton" name="AttachFileButton">
+                     <widget class="QPushButton" name="N_AttachFileButton">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -1030,7 +1030,7 @@ QPushButton:pressed
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="FileNameLabel">
+                     <widget class="QLabel" name="N_FileNameLabel">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                         <horstretch>0</horstretch>
@@ -1130,7 +1130,7 @@ QPushButton:pressed
                <number>0</number>
               </property>
               <item row="0" column="0">
-               <widget class="QWidget" name="LettersHistoryWidget" native="true">
+               <widget class="QWidget" name="LettersHistoryWrapper" native="true">
                 <layout class="QVBoxLayout" name="LetterLayout_2" stretch="0,0,0">
                  <property name="spacing">
                   <number>0</number>
@@ -1246,7 +1246,7 @@ margin-right: 20px;</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QWidget" name="LetterManipulationWidget_2" native="true">
+                  <widget class="QWidget" name="R_LetterManipulationWidget" native="true">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -1270,7 +1270,7 @@ margin-right: 20px;</string>
                      <number>9</number>
                     </property>
                     <item>
-                     <widget class="QPushButton" name="AttachFileButton_2">
+                     <widget class="QPushButton" name="R_AttachFileButton">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -1320,7 +1320,7 @@ QPushButton:pressed
                      </widget>
                     </item>
                     <item>
-                     <widget class="QLabel" name="FileNameLabel_2">
+                     <widget class="QLabel" name="R_FileNameLabel">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                         <horstretch>0</horstretch>

@@ -14,6 +14,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     PopulateMailsHistory();
+
+    connect(ui->N_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
+    connect(ui->R_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
 }
 
 MainWindow::~MainWindow()
@@ -24,23 +27,6 @@ MainWindow::~MainWindow()
 void MainWindow::on_LogInButton_released()
 {
     ui->MainPagesStack->setCurrentIndex((int)EMainPagesIndex::MainPage);
-}
-
-void MainWindow::on_AttachFileButton_released()
-{
-    QStringList file_paths = QFileDialog::getOpenFileNames(nullptr, "Select Files", "", "All Files (*.*)");
-    QStringList file_names;
-    if (!file_paths.isEmpty())
-    {
-        for (const auto& file_path : file_paths)
-        {
-            QFileInfo file_info(file_path);
-            QString file_name = file_info.fileName();
-            file_names.append(file_name);
-        }
-        QString files = file_names.join("; ");
-        ui->FileNameLabel->setText(files);
-    }
 }
 
 bool MainWindow::isValidEmail(const QString &email)
@@ -142,25 +128,26 @@ void MainWindow::on_SendButton_released()
 
     if (!CheckEmails(ui->EmailLine)) return;
 
-    QString Recipients = ui->EmailLine->text();
-    QStringList EmailList = Recipients.split(s_split_regex, Qt::SkipEmptyParts);
+    QString recipients = ui->EmailLine->text();
+    QStringList email_list = recipients.split(s_split_regex, Qt::SkipEmptyParts);
 
-    QString LetterSubject = ui->SubjectLine->text();
-    QString LetterBody = ui->LetterBodyText->toPlainText();
+    QString letter_subject = ui->SubjectLine->text();
+    QString letter_body = ui->LetterBodyText->toPlainText();
 
-    for (const QString& Recipient : EmailList)
+    for (const QString& recipient : email_list)
     {
-        QDate CurrentDate = QDate::currentDate();
-        LetterStruct Letter(m_current_user, Recipient, CurrentDate, LetterSubject, LetterBody);
+        QDate current_date = QDate::currentDate();
+        LetterStruct letter(m_current_user, recipient, current_date, letter_subject, letter_body, m_currently_selected_files);
+        qDebug() << "m_currently_selected_files " << m_currently_selected_files.size();
 
-        SendLetter(Letter);
+        SendLetter(letter);
 
-        QString FileName = Letter.GenerateFileName();
-        QString FullFileName = m_temp_file_path + FileName;
+        QString file_name = letter.GenerateFileName();
+        QString full_file_name = m_temp_file_path + file_name;
 
-        QVector<LetterStruct> Letters {Letter};
-        SpawnNewHistoryUnit(Letter);
-        WriteLettersToFile(Letters, FullFileName);
+        QVector<LetterStruct> letters {letter};
+        SpawnNewHistoryUnit(letter);
+        WriteLettersToFile(letters, full_file_name);
     }
 
     CleanNewLetterFields();
@@ -171,7 +158,7 @@ void MainWindow::SendLetter(const LetterStruct& Letter)
 
 }
 
-bool MainWindow::WriteLettersToFile(const QVector<LetterStruct>& Letters, const QString& full_file_name)
+bool MainWindow::WriteLettersToFile(const QVector<LetterStruct>& letters, const QString& full_file_name)
 {
     QFile file(full_file_name);
     if (!file.open(QIODevice::ReadWrite))
@@ -179,22 +166,22 @@ bool MainWindow::WriteLettersToFile(const QVector<LetterStruct>& Letters, const 
         qDebug() << "Could not open file for writing";
         return false;
     }
-    if (Letters.isEmpty())
+    if (letters.isEmpty())
     {
         qDebug() << "Trying to write 0 letters!";
         return false;
     }
 
-    qDebug() << "Writing to " << full_file_name << " " << Letters.size() << " letters";
+    qDebug() << "Writing to " << full_file_name << " " << letters.size() << " letters";
 
     QDataStream out(&file);
     out.setVersion(QDataStream::Qt_6_7);
 
-    out << Letters.size();
+    out << letters.size();
 
-    for (const auto& Letter : Letters)
+    for (const auto& letter : letters)
     {
-        out << Letter;
+        out << letter;
     }
 
     file.close();
@@ -248,14 +235,34 @@ bool MainWindow::AppendLettersToFile(const QVector<LetterStruct>& Letters, const
     return true;
 }
 
+void MainWindow::SelectFilesAndRefreshLabels()
+{
+    m_currently_selected_files = QFileDialog::getOpenFileNames(nullptr, "Select Files", "", "All Files (*.*)");
+    QStringList file_names;
+    if (!m_currently_selected_files.isEmpty())
+    {
+        for (const auto& file_path : m_currently_selected_files)
+        {
+            QFileInfo file_info(file_path);
+            QString file_name = file_info.fileName();
+            file_names.append(file_name);
+        }
+        QString files = file_names.join("; ");
+
+        // Haven't found a way to not just copy and paste for each label
+        ui->N_FileNameLabel->setText(files);
+        ui->R_FileNameLabel->setText(files);
+    }
+}
+
 void MainWindow::HistoryWidgetClicked(QVector<LetterStruct> related_letters)
 {
     if (!related_letters.isEmpty())
     {
-        m_temp_current_history_unit = qobject_cast<MailHistoryUnit*>(sender());
-        if (m_temp_current_history_unit)
+        m_current_history_unit = qobject_cast<MailHistoryUnit*>(sender());
+        if (m_current_history_unit)
         {
-            ui->LetterHistoryText->setText(m_temp_current_history_unit->GetFullTextRepresentation());
+            ui->LetterHistoryText->setText(m_current_history_unit->GetFullTextRepresentation());
             ui->LetterTypeStack->setCurrentIndex((int)ELetterPagesIndex::ReplyPage);
         }
     }
@@ -278,9 +285,9 @@ void MainWindow::on_NewLetterButton_released()
 
 void MainWindow::on_SendReplyButton_released()
 {
-    if (m_temp_current_history_unit)
+    if (m_current_history_unit)
     {
-        const QVector<LetterStruct>& current_letters = m_temp_current_history_unit->get_letters();
+        const QVector<LetterStruct>& current_letters = m_current_history_unit->get_letters();
         if (!current_letters.isEmpty())
         {
             QString first_file_name{};
@@ -302,17 +309,22 @@ void MainWindow::on_SendReplyButton_released()
                 }
             }
             QString letter_body = ui->ReplyLine->text();
-            LetterStruct letter{m_current_user, recipient_email, QDate::currentDate(), "Reply", letter_body};
+            LetterStruct letter{m_current_user, recipient_email, QDate::currentDate(), "Reply", letter_body, m_currently_selected_files};
 
             SendLetter(letter);
             AppendLettersToFile(QVector<LetterStruct>{letter}, m_temp_file_path + first_file_name);
 
-            m_temp_current_history_unit->Append(QVector<LetterStruct>{letter});
-            ui->LetterHistoryText->setText(m_temp_current_history_unit->GetFullTextRepresentation());
+            m_current_history_unit->Append(QVector<LetterStruct>{letter});
+            ui->LetterHistoryText->setText(m_current_history_unit->GetFullTextRepresentation());
 
             int max = ui->LetterHistoryText->verticalScrollBar()->maximum();
             ui->LetterHistoryText->verticalScrollBar()->setValue(max);
         }
     }
+}
+
+void MainWindow::SelectLetters_Slot()
+{
+    SelectFilesAndRefreshLabels();
 }
 
