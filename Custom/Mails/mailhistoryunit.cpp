@@ -10,7 +10,9 @@ MailHistoryUnit::MailHistoryUnit(QWidget *parent)
     this->installEventFilter(this);
 }
 
-MailHistoryUnit::MailHistoryUnit(const QString& sender, const QString& recipient, const QString& subject, const QString& letterBody, const QVector<QString> files_paths, QWidget *parent)
+MailHistoryUnit::MailHistoryUnit(const QString& sender, const QString& recipient
+                                 , const QString& subject, const QString& letterBody
+                                 , const QVector<QString> files_paths, QWidget *parent)
     : MailHistoryUnit(parent)
 {
     ui->SenderEmailLabel->setText(recipient);

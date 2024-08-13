@@ -29,6 +29,94 @@ void MainWindow::on_LogInButton_released()
     ui->MainPagesStack->setCurrentIndex((int)EMainPagesIndex::MainPage);
 }
 
+void MainWindow::on_EmailLine_editingFinished()
+{
+    CheckEmails(ui->EmailLine);
+}
+
+void MainWindow::on_SendButton_released()
+{
+    static QRegularExpression s_split_regex("\\s*,\\s*|\\s+");
+
+    if (!CheckEmails(ui->EmailLine)) return;
+
+    QString recipients = ui->EmailLine->text();
+    QStringList email_list = recipients.split(s_split_regex, Qt::SkipEmptyParts);
+
+    QString letter_subject = ui->SubjectLine->text();
+    QString letter_body = ui->LetterBodyText->toPlainText();
+
+    for (const QString& recipient : email_list)
+    {
+        QDate current_date = QDate::currentDate();
+        LetterStruct letter(m_current_user, recipient, current_date, letter_subject, letter_body, m_currently_selected_files);
+
+        SendLetter(letter);
+
+        QString file_name = letter.GenerateFileName();
+        QString full_file_name = m_temp_file_path + file_name;
+
+        QVector<LetterStruct> letters {letter};
+        SpawnNewHistoryUnit(letter);
+        WriteLettersToFile(letters, full_file_name);
+    }
+
+    CleanNewLetterFields();
+}
+
+
+void MainWindow::on_NewLetterButton_released()
+{
+    ui->LetterTypeStack->setCurrentIndex((int)ELetterPagesIndex::NewLetterPage);
+
+    CleanNewLetterFields();
+}
+
+void MainWindow::on_SendReplyButton_released()
+{
+    if (m_current_history_unit)
+    {
+        const QVector<LetterStruct>& current_letters = m_current_history_unit->get_letters();
+        if (!current_letters.isEmpty())
+        {
+            QString first_file_name{};
+            QString recipient_email{};
+            for (const auto& letter : current_letters)
+            {
+                if (first_file_name.isEmpty())
+                {
+                    first_file_name = letter.GenerateFileName();
+                }
+
+                if (letter.recipient != m_current_user)
+                {
+                    recipient_email = letter.recipient;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            QString letter_body = ui->ReplyLine->text();
+            LetterStruct letter{m_current_user, recipient_email, QDate::currentDate(), "Reply", letter_body, m_currently_selected_files};
+
+            SendLetter(letter);
+            AppendLettersToFile(QVector<LetterStruct>{letter}, m_temp_file_path + first_file_name);
+
+            m_current_history_unit->Append(QVector<LetterStruct>{letter});
+            ui->LetterHistoryText->setText(m_current_history_unit->GetFullTextRepresentation());
+
+            int max = ui->LetterHistoryText->verticalScrollBar()->maximum();
+            ui->LetterHistoryText->verticalScrollBar()->setValue(max);
+        }
+    }
+}
+
+void MainWindow::SelectLetters_Slot()
+{
+    SelectFilesAndRefreshLabels();
+}
+
 bool MainWindow::isValidEmail(const QString &email)
 {
     static QRegularExpression s_email_regex("^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$");
@@ -72,11 +160,6 @@ bool MainWindow::CheckEmails(const QLineEdit* Container)
     return true;
 }
 
-void MainWindow::on_EmailLine_editingFinished()
-{
-    CheckEmails(ui->EmailLine);
-}
-
 void MainWindow::SpawnNewHistoryUnit(const LetterStruct& Letter)
 {
     QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->MailHistoryScrollArea->layout());
@@ -94,9 +177,15 @@ void MainWindow::SpawnNewHistoryUnit(const LetterStruct& Letter)
 
 void MainWindow::SpawnNewHistoryUnit(const QVector<LetterStruct>& Letters)
 {
+    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->MailHistoryScrollArea->layout());
     MailHistoryUnit* new_history_unit = new MailHistoryUnit(Letters);
-    ui->MailHistoryScrollArea->layout()->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-    ui->MailHistoryScrollArea->layout()->addWidget(new_history_unit);
+
+    if (layout)
+    {
+        new_history_unit = new MailHistoryUnit(Letters);
+        layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        layout->insertWidget(0, new_history_unit);
+    }
 
     connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgetClicked(QVector<LetterStruct>)));
 }
@@ -120,37 +209,6 @@ void MainWindow::PopulateMailsHistory()
         QVector<LetterStruct> letters = ReadLettersFromFile(m_temp_file_path + fileName);
         if (!letters.isEmpty()) SpawnNewHistoryUnit(letters);
     }
-}
-
-void MainWindow::on_SendButton_released()
-{
-    static QRegularExpression s_split_regex("\\s*,\\s*|\\s+");
-
-    if (!CheckEmails(ui->EmailLine)) return;
-
-    QString recipients = ui->EmailLine->text();
-    QStringList email_list = recipients.split(s_split_regex, Qt::SkipEmptyParts);
-
-    QString letter_subject = ui->SubjectLine->text();
-    QString letter_body = ui->LetterBodyText->toPlainText();
-
-    for (const QString& recipient : email_list)
-    {
-        QDate current_date = QDate::currentDate();
-        LetterStruct letter(m_current_user, recipient, current_date, letter_subject, letter_body, m_currently_selected_files);
-        qDebug() << "m_currently_selected_files " << m_currently_selected_files.size();
-
-        SendLetter(letter);
-
-        QString file_name = letter.GenerateFileName();
-        QString full_file_name = m_temp_file_path + file_name;
-
-        QVector<LetterStruct> letters {letter};
-        SpawnNewHistoryUnit(letter);
-        WriteLettersToFile(letters, full_file_name);
-    }
-
-    CleanNewLetterFields();
 }
 
 void MainWindow::SendLetter(const LetterStruct& Letter)
@@ -274,57 +332,3 @@ void MainWindow::CleanNewLetterFields()
     ui->SubjectLine->setText("");
     ui->LetterBodyText->setText("");
 }
-
-void MainWindow::on_NewLetterButton_released()
-{
-    ui->LetterTypeStack->setCurrentIndex((int)ELetterPagesIndex::NewLetterPage);
-
-    CleanNewLetterFields();
-}
-
-
-void MainWindow::on_SendReplyButton_released()
-{
-    if (m_current_history_unit)
-    {
-        const QVector<LetterStruct>& current_letters = m_current_history_unit->get_letters();
-        if (!current_letters.isEmpty())
-        {
-            QString first_file_name{};
-            QString recipient_email{};
-            for (const auto& letter : current_letters)
-            {
-                if (first_file_name.isEmpty())
-                {
-                    first_file_name = letter.GenerateFileName();
-                }
-
-                if (letter.recipient != m_current_user)
-                {
-                    recipient_email = letter.recipient;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            QString letter_body = ui->ReplyLine->text();
-            LetterStruct letter{m_current_user, recipient_email, QDate::currentDate(), "Reply", letter_body, m_currently_selected_files};
-
-            SendLetter(letter);
-            AppendLettersToFile(QVector<LetterStruct>{letter}, m_temp_file_path + first_file_name);
-
-            m_current_history_unit->Append(QVector<LetterStruct>{letter});
-            ui->LetterHistoryText->setText(m_current_history_unit->GetFullTextRepresentation());
-
-            int max = ui->LetterHistoryText->verticalScrollBar()->maximum();
-            ui->LetterHistoryText->verticalScrollBar()->setValue(max);
-        }
-    }
-}
-
-void MainWindow::SelectLetters_Slot()
-{
-    SelectFilesAndRefreshLabels();
-}
-

@@ -12,8 +12,16 @@ struct LetterStruct
 {
     LetterStruct(){}
 
-    LetterStruct(const QString& _sender, const QString& _recipient, const QDate& _timestamp, const QString& _subject, const QString& _body, const QVector<QString> _files_paths)
-        : sender(_sender), recipient(_recipient), timestamp(_timestamp), subject(_subject), body(_body), files_paths(_files_paths) {}
+    LetterStruct(const QString& _sender, const QString& _recipient
+                 , const QDate& _timestamp, const QString& _subject
+                 , const QString& _body, const QVector<QString> _files_paths)
+        : sender(_sender)
+        , recipient(_recipient)
+        , timestamp(_timestamp)
+        , subject(_subject)
+        , body(_body)
+        , files_paths(_files_paths)
+    {}
 
     QString sender{};
     QString recipient{};
