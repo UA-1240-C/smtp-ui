@@ -14,7 +14,7 @@ struct LetterStruct
 
     LetterStruct(const QString& _sender, const QString& _recipient
                  , const QDate& _timestamp, const QString& _subject
-                 , const QString& _body, const QVector<QString> _files_paths)
+                 , const QString& _body, const QVector<QString>& _files_paths)
         : sender(_sender)
         , recipient(_recipient)
         , timestamp(_timestamp)
@@ -22,13 +22,6 @@ struct LetterStruct
         , body(_body)
         , files_paths(_files_paths)
     {}
-
-    QString sender{};
-    QString recipient{};
-    QDate timestamp{};
-    QString subject{};
-    QString body{};
-    QVector<QString> files_paths{};
 
     inline QString GenerateFileName() const
     {
@@ -47,14 +40,14 @@ struct LetterStruct
                + "\nSubject: " + subject + "\n\n" + body + attached_files;
     }
 
-    friend QDataStream &operator<<(QDataStream &out, const LetterStruct &myStruct)
+    friend QDataStream& operator<<(QDataStream& out, const LetterStruct& myStruct)
     {
         QString files_representation = myStruct.files_paths.join("; ");
         out << myStruct.sender << myStruct.recipient << myStruct.timestamp << myStruct.subject << myStruct.body << files_representation;
         return out;
     }
 
-    friend QDataStream &operator>>(QDataStream &in, LetterStruct &myStruct)
+    friend QDataStream& operator>>(QDataStream& in, LetterStruct& myStruct)
     {
         QString files_representation{};
 
@@ -64,6 +57,13 @@ struct LetterStruct
         myStruct.files_paths.append(files_list);
         return in;
     }
+
+    QString sender{};
+    QString recipient{};
+    QDate timestamp{};
+    QString subject{};
+    QString body{};
+    QVector<QString> files_paths{};
 };
 
 class MailHistoryUnit : public QWidget
@@ -71,10 +71,12 @@ class MailHistoryUnit : public QWidget
     Q_OBJECT
 
 public:
-    explicit MailHistoryUnit(QWidget *parent = nullptr);
-    MailHistoryUnit(const QString& Sender, const QString& Recipient, const QString& Subject, const QString& LetterBody, const QVector<QString> files_paths, QWidget *parent = nullptr);
-    MailHistoryUnit(const LetterStruct& Letter, QWidget *parent = nullptr);
-    MailHistoryUnit(const QVector<LetterStruct>& Letters, QWidget *parent = nullptr);
+    explicit MailHistoryUnit(QWidget* parent = nullptr);
+    MailHistoryUnit(const QString& Sender, const QString& Recipient
+                    , const QString& Subject, const QString& LetterBody
+                    , const QVector<QString>& files_paths, QWidget* parent = nullptr);
+    MailHistoryUnit(const LetterStruct& Letter, QWidget* parent = nullptr);
+    MailHistoryUnit(const QVector<LetterStruct>& Letters, QWidget* parent = nullptr);
     ~MailHistoryUnit();
 
     const QVector<LetterStruct>& get_letters() const;
@@ -84,10 +86,12 @@ public:
     void Append(const QVector<LetterStruct>& NewLetters);
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
-    Ui::MailHistoryUnit *ui;
+    void RenewUiInfo(LetterStruct letter);
+
+    Ui::MailHistoryUnit* ui;
     QVector<LetterStruct> m_related_letters;
 
 signals:

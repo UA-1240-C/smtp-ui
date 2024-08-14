@@ -7,7 +7,7 @@
 #include <QScrollBar>
 #include "Custom/Mails/mailhistoryunit.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -117,7 +117,7 @@ void MainWindow::SelectLetters_Slot()
     SelectFilesAndRefreshLabels();
 }
 
-bool MainWindow::isValidEmail(const QString &email)
+bool MainWindow::isValidEmail(const QString& email)
 {
     static QRegularExpression s_email_regex("^[\\w\\.-]+@[\\w\\.-]+\\.\\w+$");
 
@@ -158,36 +158,6 @@ bool MainWindow::CheckEmails(const QLineEdit* Container)
         return false;
     }
     return true;
-}
-
-void MainWindow::SpawnNewHistoryUnit(const LetterStruct& Letter)
-{
-    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->MailHistoryScrollArea->layout());
-    MailHistoryUnit* new_history_unit = nullptr;
-
-    if (layout)
-    {
-        new_history_unit = new MailHistoryUnit(Letter);
-        layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-        layout->insertWidget(0, new_history_unit);
-    }
-
-    connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgetClicked(QVector<LetterStruct>)));
-}
-
-void MainWindow::SpawnNewHistoryUnit(const QVector<LetterStruct>& Letters)
-{
-    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->MailHistoryScrollArea->layout());
-    MailHistoryUnit* new_history_unit = new MailHistoryUnit(Letters);
-
-    if (layout)
-    {
-        new_history_unit = new MailHistoryUnit(Letters);
-        layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-        layout->insertWidget(0, new_history_unit);
-    }
-
-    connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgetClicked(QVector<LetterStruct>)));
 }
 
 void MainWindow::PopulateMailsHistory()
@@ -252,14 +222,14 @@ QVector<LetterStruct> MainWindow::ReadLettersFromFile(const QString& full_file_n
     QFile file(full_file_name);
     QVector<LetterStruct> Letters;
 
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "Could not open file " << full_file_name << " for reading";
-        return Letters;
-    }
     if (!QFile::exists(full_file_name))
     {
         qDebug() << "The file " << full_file_name << " was not found";
+        return Letters;
+    }
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Could not open file " << full_file_name << " for reading";
         return Letters;
     }
 
@@ -331,4 +301,23 @@ void MainWindow::CleanNewLetterFields()
     ui->EmailLine->setText("");
     ui->SubjectLine->setText("");
     ui->LetterBodyText->setText("");
+}
+
+template<typename... Args>
+void MainWindow::SpawnNewHistoryUnit(Args&&... args)
+{
+    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(ui->MailHistoryScrollArea->layout());
+    MailHistoryUnit* new_history_unit = nullptr;
+
+    if (layout)
+    {
+        new_history_unit = new MailHistoryUnit(std::forward<Args>(args)...);
+        layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        layout->insertWidget(0, new_history_unit);
+    }
+
+    if (new_history_unit)
+    {
+        connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgetClicked(QVector<LetterStruct>)));
+    }
 }

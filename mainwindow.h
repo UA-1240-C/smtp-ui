@@ -28,7 +28,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
 private slots:
@@ -48,8 +48,8 @@ private slots:
     void SelectLetters_Slot();
 
 private:
-    Ui::MainWindow *ui;
-    bool isValidEmail(const QString &email);
+    Ui::MainWindow* ui;
+    bool isValidEmail(const QString& email);
     bool CheckEmails(const QLineEdit* Container);
     void CleanNewLetterFields();
 
@@ -59,6 +59,8 @@ private:
     void SpawnNewHistoryUnit(const LetterStruct& Letter);
     // and connect the signals
     void SpawnNewHistoryUnit(const QVector<LetterStruct>& Letter);
+    template<typename... Args>
+    void SpawnNewHistoryUnit(Args&&... args);
     void PopulateMailsHistory();
 
     bool WriteLettersToFile(const QVector<LetterStruct>& letters, const QString& FullFileName);
