@@ -491,7 +491,7 @@ color: rgb(90, 135, 90);</string>
 color: black;</string>
                   </property>
                   <property name="text">
-                   <string>kormak1752@gmail.com</string>
+                   <string>user@gmail.com</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignCenter</set>

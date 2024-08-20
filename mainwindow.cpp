@@ -51,6 +51,7 @@ void MainWindow::on_LogInButton_released()
         m_smtp_client.lock()->AsyncAuthenticate(m_current_user.toStdString(), m_current_password.toStdString()).get();
 
         ui->MainPagesStack->setCurrentIndex((int)EMainPagesIndex::MainPage);
+        ui->UserEmailLabel->setText(m_current_user);
     }
     catch (const std::exception& e)
     {
