@@ -4,6 +4,7 @@
 #include "Custom/Mails/mailhistoryunit.h"
 #include <QMainWindow>
 #include <qlineedit.h>
+#include "SmtpClient.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -29,6 +30,7 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget* parent = nullptr);
+    MainWindow(QWidget* parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client);
     ~MainWindow();
 
 private slots:
@@ -69,7 +71,10 @@ private:
 
     void SelectFilesAndRefreshLabels();
 
-    QString m_current_user{"kormak1752@gmail.com"};
+    std::weak_ptr<ISXSC::SmtpClient> m_smtp_client;
+    QString m_current_user{"user@gmail.com"};
+    QString m_current_password{"password"};
+    QString m_current_server{"smtp.gmail.com"};
     const QString m_temp_file_path{R"*(D:\SoftServe\Temp\)*"};
     QVector<QString> m_currently_selected_files{};
     MailHistoryUnit* m_current_history_unit{};

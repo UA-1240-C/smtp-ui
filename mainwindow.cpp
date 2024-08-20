@@ -6,10 +6,24 @@
 #include <QRegularExpression>
 #include <QScrollBar>
 #include "Custom/Mails/mailhistoryunit.h"
+#include "SmtpClient.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    PopulateMailsHistory();
+
+    connect(ui->N_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
+    connect(ui->R_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
+}
+
+MainWindow::MainWindow(QWidget* parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+    , m_smtp_client(smtp_client)
 {
     ui->setupUi(this);
 
