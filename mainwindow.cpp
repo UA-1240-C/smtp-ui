@@ -98,6 +98,11 @@ void MainWindow::on_SendButton_released()
         WriteLettersToFile(letters, full_file_name);
     }
 
+    for (const QString& file_path : m_currently_selected_files)
+    {
+        builder.add_attachment(file_path.toStdString());
+    }
+
     try
     {
         m_smtp_client.lock()->AsyncSendMail(builder.Build()).get();
