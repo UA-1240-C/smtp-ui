@@ -7,6 +7,7 @@
 #include <QScrollBar>
 #include "Custom/Mails/mailhistoryunit.h"
 #include "SmtpClient.h"
+#include "MailMessageBuilder.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -40,7 +41,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_LogInButton_released()
 {
-    ui->MainPagesStack->setCurrentIndex((int)EMainPagesIndex::MainPage);
+    m_current_user = ui->LoginLine->text();
+    m_current_password = ui->PasswordLine->text();
+    m_current_server = ui->ServerLine->text();
+
+    try
+    {
+        m_smtp_client.lock()->AsyncConnect(m_current_server.toStdString(), 587).get();
+        m_smtp_client.lock()->AsyncAuthenticate(m_current_user.toStdString(), m_current_password.toStdString()).get();
+
+        ui->MainPagesStack->setCurrentIndex((int)EMainPagesIndex::MainPage);
+    }
+    catch (const std::exception& e)
+    {
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error",e.what());
+        messageBox.setFixedSize(500,200);
+        messageBox.show();
+    }
 }
 
 void MainWindow::on_EmailLine_editingFinished()
@@ -50,6 +68,8 @@ void MainWindow::on_EmailLine_editingFinished()
 
 void MainWindow::on_SendButton_released()
 {
+    ISXMM::MailMessageBuilder builder;
+    builder.set_from(m_current_user.toStdString());
     static QRegularExpression s_split_regex("\\s*,\\s*|\\s+");
 
     if (!CheckEmails(ui->EmailLine)) return;
@@ -58,10 +78,13 @@ void MainWindow::on_SendButton_released()
     QStringList email_list = recipients.split(s_split_regex, Qt::SkipEmptyParts);
 
     QString letter_subject = ui->SubjectLine->text();
+    builder.set_subject(letter_subject.toStdString());
     QString letter_body = ui->LetterBodyText->toPlainText();
+    builder.set_body(letter_body.toStdString());
 
     for (const QString& recipient : email_list)
     {
+        builder.add_to(recipient.toStdString());
         QDate current_date = QDate::currentDate();
         LetterStruct letter(m_current_user, recipient, current_date, letter_subject, letter_body, m_currently_selected_files);
 
@@ -73,6 +96,18 @@ void MainWindow::on_SendButton_released()
         QVector<LetterStruct> letters {letter};
         SpawnNewHistoryUnit(letter);
         WriteLettersToFile(letters, full_file_name);
+    }
+
+    try
+    {
+        m_smtp_client.lock()->AsyncSendMail(builder.Build()).get();
+    }
+    catch (const std::exception& e)
+    {
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error",e.what());
+        messageBox.setFixedSize(500,200);
+        messageBox.show();
     }
 
     CleanNewLetterFields();
