@@ -53,6 +53,7 @@ void MainWindow::on_LogInButton_released()
 
         auto server_part = m_current_server.toStdString().substr(0, colon_index);
         auto port_part = m_current_server.toStdString().substr(colon_index + 1);
+
         m_smtp_client.lock()->AsyncConnect(server_part, stoi(port_part)).get();
         m_smtp_client.lock()->AsyncAuthenticate(m_current_user.toStdString(), m_current_password.toStdString()).get();
 
@@ -61,6 +62,7 @@ void MainWindow::on_LogInButton_released()
     }
     catch (const std::exception& e)
     {
+        m_smtp_client.lock()->Reset();
         QMessageBox messageBox;
         messageBox.critical(0,"Error",e.what());
         messageBox.setFixedSize(500,200);
