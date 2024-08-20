@@ -109,10 +109,11 @@ void MainWindow::on_SendButton_released()
     {
         builder.add_attachment(file_path.toStdString());
     }
-
     try
     {
         m_smtp_client.lock()->AsyncSendMail(builder.Build()).get();
+        ui->N_FileNameLabel->setText("");
+        ui->R_FileNameLabel->setText("");
     }
     catch (const std::exception& e)
     {
@@ -264,7 +265,7 @@ bool MainWindow::WriteLettersToFile(const QVector<LetterStruct>& letters, const 
     qDebug() << "Writing to " << full_file_name << " " << letters.size() << " letters";
 
     QDataStream out(&file);
-    out.setVersion(QDataStream::Qt_6_7);
+    out.setVersion(QDataStream::Qt_6_4);
 
     out << letters.size();
 

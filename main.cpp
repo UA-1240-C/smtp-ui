@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
     w.show();
     a.exec();
 
+    smtp_client.reset();
     io_context.stop();
     worker.join();
 }
