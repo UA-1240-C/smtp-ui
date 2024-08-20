@@ -45,9 +45,15 @@ void MainWindow::on_LogInButton_released()
     m_current_password = ui->PasswordLine->text();
     m_current_server = ui->ServerLine->text();
 
+    qsizetype colon_index = m_current_server.indexOf(':');
     try
     {
-        m_smtp_client.lock()->AsyncConnect(m_current_server.toStdString(), 587).get();
+        if (colon_index == -1)
+            throw std::runtime_error("Invalid server address. Please provide the port number as well.");
+
+        auto server_part = m_current_server.toStdString().substr(0, colon_index);
+        auto port_part = m_current_server.toStdString().substr(colon_index + 1);
+        m_smtp_client.lock()->AsyncConnect(server_part, stoi(port_part)).get();
         m_smtp_client.lock()->AsyncAuthenticate(m_current_user.toStdString(), m_current_password.toStdString()).get();
 
         ui->MainPagesStack->setCurrentIndex((int)EMainPagesIndex::MainPage);

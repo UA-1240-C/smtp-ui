@@ -183,7 +183,7 @@ color: rgb(91, 141, 88);</string>
               <string/>
              </property>
              <property name="placeholderText">
-              <string>smtp.gmail.com</string>
+              <string>smtp.gmail.com:587</string>
              </property>
             </widget>
            </item>
