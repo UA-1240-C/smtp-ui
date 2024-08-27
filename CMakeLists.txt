@@ -16,7 +16,7 @@ include(FetchContent)
 FetchContent_Declare(
     client
     GIT_REPOSITORY https://github.com/UA-1240-C/smtp-client
-    GIT_TAG       pre-demo-lib)
+    GIT_TAG       windows-pre-demo-lib)
 FetchContent_MakeAvailable(client)
 
 set(PROJECT_SOURCES
