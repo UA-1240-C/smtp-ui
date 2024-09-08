@@ -68,6 +68,7 @@ private:
     bool AppendLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName);
 
     void SelectFilesAndRefreshLabels();
+    void ClearSelectedFilesAndRefreshLabels();
 
     QString m_current_user{"kormak1752@gmail.com"};
     const QString m_temp_file_path{R"*(D:\SoftServe\Temp\)*"};

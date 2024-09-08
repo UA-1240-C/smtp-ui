@@ -53,8 +53,11 @@ struct LetterStruct
 
         in >> myStruct.sender >> myStruct.recipient >> myStruct.timestamp >> myStruct.subject >> myStruct.body >> files_representation;
 
-        QStringList files_list = files_representation.split("; ");
-        myStruct.files_paths.append(files_list);
+        if (!files_representation.isEmpty())
+        {
+            QStringList files_list = files_representation.split("; ");
+            myStruct.files_paths.append(files_list);
+        }
         return in;
     }
 

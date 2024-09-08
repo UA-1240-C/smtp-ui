@@ -62,6 +62,7 @@ void MainWindow::on_SendButton_released()
     }
 
     CleanNewLetterFields();
+    ClearSelectedFilesAndRefreshLabels();
 }
 
 
@@ -108,6 +109,8 @@ void MainWindow::on_SendReplyButton_released()
 
             int max = ui->LetterHistoryText->verticalScrollBar()->maximum();
             ui->LetterHistoryText->verticalScrollBar()->setValue(max);
+
+            ClearSelectedFilesAndRefreshLabels();
         }
     }
 }
@@ -169,7 +172,7 @@ void MainWindow::PopulateMailsHistory()
         qDebug() << "Directory does not exist:" << m_temp_file_path;
     }
 
-    dir.setSorting(QDir::Time);
+    dir.setSorting(QDir::Time | QDir::Reversed);
     dir.setFilter(QDir::Files);
     QStringList files = dir.entryList();
 
@@ -183,7 +186,6 @@ void MainWindow::PopulateMailsHistory()
 
 void MainWindow::SendLetter(const LetterStruct& Letter)
 {
-
 }
 
 bool MainWindow::WriteLettersToFile(const QVector<LetterStruct>& letters, const QString& full_file_name)
@@ -281,6 +283,13 @@ void MainWindow::SelectFilesAndRefreshLabels()
         ui->N_FileNameLabel->setText(files);
         ui->R_FileNameLabel->setText(files);
     }
+}
+
+void MainWindow::ClearSelectedFilesAndRefreshLabels()
+{
+    m_currently_selected_files.clear();
+    ui->N_FileNameLabel->setText("");
+    ui->R_FileNameLabel->setText("");
 }
 
 void MainWindow::HistoryWidgetClicked(QVector<LetterStruct> related_letters)

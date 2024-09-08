@@ -264,6 +264,9 @@ color: rgb(91, 141, 88);</string>
              <property name="placeholderText">
               <string>Password</string>
              </property>
+             <property name="clearButtonEnabled">
+              <bool>false</bool>
+             </property>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignHCenter">
@@ -435,6 +438,33 @@ QPushButton:pressed
                 <string notr="true">background-color: rgb(175, 255, 169);</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_7">
+                <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignTop">
+                 <widget class="QLabel" name="UserEmailLabel">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Titillium Web</family>
+                    <pointsize>12</pointsize>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">border: 0px solid black;
+color: black;</string>
+                  </property>
+                  <property name="text">
+                   <string>kormak1752@gmail.com</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignmentFlag::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
                 <item row="0" column="0" alignment="Qt::AlignmentFlag::AlignTop">
                  <widget class="QLabel" name="InfoLabel">
                   <property name="sizePolicy">
@@ -465,33 +495,6 @@ color: rgb(90, 135, 90);</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignTop">
-                 <widget class="QLabel" name="UserEmailLabel">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="font">
-                   <font>
-                    <family>Titillium Web</family>
-                    <pointsize>12</pointsize>
-                    <bold>true</bold>
-                   </font>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">border: 0px solid black;
-color: black;</string>
-                  </property>
-                  <property name="text">
-                   <string>kormak1752@gmail.com</string>
-                  </property>
-                  <property name="alignment">
-                   <set>Qt::AlignmentFlag::AlignCenter</set>
                   </property>
                  </widget>
                 </item>
@@ -561,50 +564,6 @@ margin-right: 20px;</string>
                 <property name="verticalSpacing">
                  <number>10</number>
                 </property>
-                <item row="2" column="0">
-                 <widget class="QPushButton" name="NewLetterButton">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>30</height>
-                   </size>
-                  </property>
-                  <property name="font">
-                   <font>
-                    <family>Titillium Web</family>
-                    <pointsize>12</pointsize>
-                   </font>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QPushButton
-{
-	background-color: rgb(239, 255, 237);
-	color: rgb(91, 141, 88);
-	border: 1px solid black;
-	border-radius: 10px
-}
-
-QPushButton:hover
-{
-	background-color: rgb(191, 255, 188);
-	color: rgb(91, 141, 88);
-	border: 1px solid black;
-	border-radius: 10px
-}
-
-QPushButton:pressed
-{
-	background-color: rgb(128, 255, 114);
-	color: rgb(91, 141, 88);
-	border: 1px solid black;
-	border-radius: 10px
-}</string>
-                  </property>
-                  <property name="text">
-                   <string>New letter</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="0" column="0">
                  <widget class="QWidget" name="MailHistoryWidget" native="true">
                   <property name="styleSheet">
@@ -694,6 +653,50 @@ border: 0px solid white;</string>
                    <string notr="true">background-color: rgb(96, 255, 88);
 margin-left: 11px;
 margin-right: 11px;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QPushButton" name="NewLetterButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Titillium Web</family>
+                    <pointsize>12</pointsize>
+                   </font>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton
+{
+	background-color: rgb(239, 255, 237);
+	color: rgb(91, 141, 88);
+	border: 1px solid black;
+	border-radius: 10px
+}
+
+QPushButton:hover
+{
+	background-color: rgb(191, 255, 188);
+	color: rgb(91, 141, 88);
+	border: 1px solid black;
+	border-radius: 10px
+}
+
+QPushButton:pressed
+{
+	background-color: rgb(128, 255, 114);
+	color: rgb(91, 141, 88);
+	border: 1px solid black;
+	border-radius: 10px
+}</string>
+                  </property>
+                  <property name="text">
+                   <string>New letter</string>
                   </property>
                  </widget>
                 </item>
