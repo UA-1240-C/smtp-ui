@@ -70,6 +70,7 @@ private:
     bool AppendLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName);
 
     void SelectFilesAndRefreshLabels();
+    void ClearSelectedFilesAndRefreshLabels();
 
     std::weak_ptr<ISXSC::SmtpClient> m_smtp_client;
     QString m_current_user{"user@gmail.com"};
