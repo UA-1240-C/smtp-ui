@@ -54,7 +54,7 @@
        <string notr="true"/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="MP_Login">
        <property name="sizePolicy">
@@ -644,7 +644,7 @@ border: 0px solid white;</string>
                         <x>0</x>
                         <y>0</y>
                         <width>228</width>
-                        <height>351</height>
+                        <height>350</height>
                        </rect>
                       </property>
                       <property name="maximumSize">
@@ -734,7 +734,7 @@ margin-right: 11px;</string>
           <item>
            <widget class="QStackedWidget" name="LetterTypeStack">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="LTP_New">
              <layout class="QVBoxLayout" name="verticalLayout">
@@ -1175,26 +1175,6 @@ QPushButton:pressed
                     <property name="rightMargin">
                      <number>9</number>
                     </property>
-                    <item row="2" column="0">
-                     <widget class="QLineEdit" name="ReplyLine">
-                      <property name="font">
-                       <font>
-                        <family>Titillium Web</family>
-                        <pointsize>14</pointsize>
-                       </font>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">    border: 1px solid black;
-    border-radius: 10px;
-    background: white;
-	color: black;
-	padding: 0px 7px;</string>
-                      </property>
-                      <property name="placeholderText">
-                       <string>Reply here</string>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="1" column="0">
                      <widget class="QTextEdit" name="LetterHistoryText">
                       <property name="font">
@@ -1272,83 +1252,8 @@ margin-right: 20px;</string>
                     <property name="rightMargin">
                      <number>9</number>
                     </property>
-                    <item>
-                     <widget class="QPushButton" name="R_AttachFileButton">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="minimumSize">
-                       <size>
-                        <width>100</width>
-                        <height>30</height>
-                       </size>
-                      </property>
-                      <property name="font">
-                       <font>
-                        <family>Titillium Web</family>
-                        <pointsize>12</pointsize>
-                       </font>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">QPushButton
-{
-	background-color: rgb(239, 255, 237);
-	color: rgb(91, 141, 88);
-	border: 1px solid black;
-	border-radius: 10px
-}
-
-QPushButton:hover
-{
-	background-color: rgb(191, 255, 188);
-	color: rgb(91, 141, 88);
-	border: 1px solid black;
-	border-radius: 10px
-}
-
-QPushButton:pressed
-{
-	background-color: rgb(128, 255, 114);
-	color: rgb(91, 141, 88);
-	border: 1px solid black;
-	border-radius: 10px
-}</string>
-                      </property>
-                      <property name="text">
-                       <string>Attach files</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QLabel" name="R_FileNameLabel">
-                      <property name="sizePolicy">
-                       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                        <horstretch>0</horstretch>
-                        <verstretch>0</verstretch>
-                       </sizepolicy>
-                      </property>
-                      <property name="font">
-                       <font>
-                        <family>Titillium Web</family>
-                        <pointsize>9</pointsize>
-                       </font>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(0, 0, 0);</string>
-                      </property>
-                      <property name="text">
-                       <string/>
-                      </property>
-                      <property name="wordWrap">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
                     <item alignment="Qt::AlignmentFlag::AlignRight">
-                     <widget class="QPushButton" name="SendReplyButton">
+                     <widget class="QPushButton" name="ReloadHistoryButton">
                       <property name="sizePolicy">
                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                         <horstretch>0</horstretch>
@@ -1357,7 +1262,7 @@ QPushButton:pressed
                       </property>
                       <property name="minimumSize">
                        <size>
-                        <width>60</width>
+                        <width>70</width>
                         <height>30</height>
                        </size>
                       </property>
@@ -1393,7 +1298,7 @@ QPushButton:pressed
 }</string>
                       </property>
                       <property name="text">
-                       <string>Send!</string>
+                       <string>Reload</string>
                       </property>
                      </widget>
                     </item>
@@ -1421,7 +1326,7 @@ QPushButton:pressed
      <x>0</x>
      <y>0</y>
      <width>698</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

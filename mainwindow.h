@@ -5,6 +5,7 @@
 #include <QMainWindow>
 #include <qlineedit.h>
 #include "SmtpClient.h"
+#include "ImapClient.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -31,6 +32,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget* parent = nullptr);
     MainWindow(QWidget* parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client);
+    MainWindow(QWidget* parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client, std::shared_ptr<ISXICI::ImapClient> imap_client);
     ~MainWindow();
 
 private slots:
@@ -45,9 +47,9 @@ private slots:
 
     void HistoryWidgetClicked(QVector<LetterStruct> RelatedLetters);
 
-    void on_SendReplyButton_released();
-
     void SelectLetters_Slot();
+
+    void on_ReloadHistoryButton_released();
 
 private:
     Ui::MainWindow* ui;
@@ -65,13 +67,12 @@ private:
     void SpawnNewHistoryUnit(Args&&... args);
     void PopulateMailsHistory();
 
-    bool WriteLettersToFile(const QVector<LetterStruct>& letters, const QString& FullFileName);
-    QVector<LetterStruct> ReadLettersFromFile(const QString& FullFileName);
-    bool AppendLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName);
-
     void SelectFilesAndRefreshLabels();
 
+    LetterStruct ParseImapString(std::string inString);
+
     std::weak_ptr<ISXSC::SmtpClient> m_smtp_client;
+    std::weak_ptr<ISXICI::ImapClient> m_imap_client;
     QString m_current_user{"user@gmail.com"};
     QString m_current_password{"password"};
     QString m_current_server{"smtp.gmail.com"};

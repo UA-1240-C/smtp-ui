@@ -14,7 +14,7 @@ MailHistoryUnit::MailHistoryUnit(const QString& sender, const QString& recipient
                                  , const QVector<QString>& files_paths, QWidget *parent)
     : MailHistoryUnit(parent)
 {
-    LetterStruct letter{sender, recipient, QDate::currentDate(), subject, letterBody, files_paths};
+    LetterStruct letter{sender, recipient, QDate::currentDate().toString(), subject, letterBody, files_paths};
 
     RenewUiInfo(letter);
 

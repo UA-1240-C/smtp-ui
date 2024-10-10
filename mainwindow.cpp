@@ -15,10 +15,7 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
-    PopulateMailsHistory();
-
     connect(ui->N_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
-    connect(ui->R_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
 }
 
 MainWindow::MainWindow(QWidget* parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client)
@@ -28,11 +25,22 @@ MainWindow::MainWindow(QWidget* parent, std::shared_ptr<ISXSC::SmtpClient> smtp_
 {
     ui->setupUi(this);
 
+    connect(ui->N_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
+}
+
+MainWindow::MainWindow(QWidget* parent, std::shared_ptr<ISXSC::SmtpClient> smtp_client, std::shared_ptr<ISXICI::ImapClient> imap_client)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+    , m_smtp_client(smtp_client)
+    , m_imap_client(imap_client)
+{
+    ui->setupUi(this);
+
     PopulateMailsHistory();
 
     connect(ui->N_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
-    connect(ui->R_AttachFileButton, SIGNAL(released()), this, SLOT(SelectLetters_Slot()));
 }
+
 
 MainWindow::~MainWindow()
 {
@@ -95,16 +103,9 @@ void MainWindow::on_SendButton_released()
     {
         builder.add_to(recipient.toStdString());
         QDate current_date = QDate::currentDate();
-        LetterStruct letter(m_current_user, recipient, current_date, letter_subject, letter_body, m_currently_selected_files);
+        LetterStruct letter(m_current_user, recipient, current_date.toString(), letter_subject, letter_body, m_currently_selected_files);
 
         SendLetter(letter);
-
-        QString file_name = letter.GenerateFileName();
-        QString full_file_name = m_temp_file_path + file_name;
-
-        QVector<LetterStruct> letters {letter};
-        SpawnNewHistoryUnit(letter);
-        WriteLettersToFile(letters, full_file_name);
     }
 
     for (const QString& file_path : m_currently_selected_files)
@@ -115,7 +116,6 @@ void MainWindow::on_SendButton_released()
     {
         m_smtp_client.lock()->AsyncSendMail(builder.Build()).get();
         ui->N_FileNameLabel->setText("");
-        ui->R_FileNameLabel->setText("");
     }
     catch (const std::exception& e)
     {
@@ -134,46 +134,6 @@ void MainWindow::on_NewLetterButton_released()
     ui->LetterTypeStack->setCurrentIndex((int)ELetterPagesIndex::NewLetterPage);
 
     CleanNewLetterFields();
-}
-
-void MainWindow::on_SendReplyButton_released()
-{
-    if (m_current_history_unit)
-    {
-        const QVector<LetterStruct>& current_letters = m_current_history_unit->get_letters();
-        if (!current_letters.isEmpty())
-        {
-            QString first_file_name{};
-            QString recipient_email{};
-            for (const auto& letter : current_letters)
-            {
-                if (first_file_name.isEmpty())
-                {
-                    first_file_name = letter.GenerateFileName();
-                }
-
-                if (letter.recipient != m_current_user)
-                {
-                    recipient_email = letter.recipient;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            QString letter_body = ui->ReplyLine->text();
-            LetterStruct letter{m_current_user, recipient_email, QDate::currentDate(), "Reply", letter_body, m_currently_selected_files};
-
-            SendLetter(letter);
-            AppendLettersToFile(QVector<LetterStruct>{letter}, m_temp_file_path + first_file_name);
-
-            m_current_history_unit->Append(QVector<LetterStruct>{letter});
-            ui->LetterHistoryText->setText(m_current_history_unit->GetFullTextRepresentation());
-
-            int max = ui->LetterHistoryText->verticalScrollBar()->maximum();
-            ui->LetterHistoryText->verticalScrollBar()->setValue(max);
-        }
-    }
 }
 
 void MainWindow::SelectLetters_Slot()
@@ -226,105 +186,38 @@ bool MainWindow::CheckEmails(const QLineEdit* Container)
 
 void MainWindow::PopulateMailsHistory()
 {
-    QDir dir(m_temp_file_path);
-
-    if (!dir.exists())
+    if (m_imap_client.expired())
     {
-        qDebug() << "Directory does not exist:" << m_temp_file_path;
+        return;
     }
 
-    dir.setSorting(QDir::Time);
-    dir.setFilter(QDir::Files);
-    QStringList files = dir.entryList();
+    QLayout* mailsHistoryLayout = ui->MailHistoryScrollArea->layout();
 
-    for (const QString &fileName : files)
+    QLayoutItem* child;
+    child = mailsHistoryLayout->takeAt(0);
+    while (child)
     {
-        qDebug() << fileName;
-        QVector<LetterStruct> letters = ReadLettersFromFile(m_temp_file_path + fileName);
-        if (!letters.isEmpty()) SpawnNewHistoryUnit(letters);
+        if (child->widget())
+        {
+            delete child->widget();
+        }
+
+        delete child;
+        child = mailsHistoryLayout->takeAt(0);
+    }
+
+    std::vector<string> Inbox = m_imap_client.lock()->getInbox();
+
+    for (const string& Letter : Inbox)
+    {
+        LetterStruct letterStruct = ParseImapString(Letter);
+        SpawnNewHistoryUnit(letterStruct);
     }
 }
 
 void MainWindow::SendLetter(const LetterStruct& Letter)
 {
 
-}
-
-bool MainWindow::WriteLettersToFile(const QVector<LetterStruct>& letters, const QString& full_file_name)
-{
-    QFile file(full_file_name);
-    if (!file.open(QIODevice::ReadWrite))
-    {
-        qDebug() << "Could not open file for writing";
-        return false;
-    }
-    if (letters.isEmpty())
-    {
-        qDebug() << "Trying to write 0 letters!";
-        return false;
-    }
-
-    qDebug() << "Writing to " << full_file_name << " " << letters.size() << " letters";
-
-    QDataStream out(&file);
-    out.setVersion(QDataStream::Qt_6_4);
-
-    out << letters.size();
-
-    for (const auto& letter : letters)
-    {
-        out << letter;
-    }
-
-    file.close();
-
-    return true;
-}
-
-QVector<LetterStruct> MainWindow::ReadLettersFromFile(const QString& full_file_name)
-{
-    QFile file(full_file_name);
-    QVector<LetterStruct> Letters;
-
-    if (!QFile::exists(full_file_name))
-    {
-        qDebug() << "The file " << full_file_name << " was not found";
-        return Letters;
-    }
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "Could not open file " << full_file_name << " for reading";
-        return Letters;
-    }
-
-    qDebug() << "Reading from: " << full_file_name;
-
-    QDataStream in(&file);
-
-    qsizetype size;
-    in >> size;
-    qDebug() << size;
-
-    for (qsizetype i = 0; i < size; i++)
-    {
-        LetterStruct Letter;
-        in >> Letter;
-        Letters.append(Letter);
-    }
-
-    file.close();
-    return Letters;
-}
-
-bool MainWindow::AppendLettersToFile(const QVector<LetterStruct>& Letters, const QString& FullFileName)
-{
-    QVector<LetterStruct> existing_letters = ReadLettersFromFile(FullFileName);
-
-    existing_letters.append(Letters);
-
-    WriteLettersToFile(existing_letters, FullFileName);
-
-    return true;
 }
 
 void MainWindow::SelectFilesAndRefreshLabels()
@@ -343,8 +236,89 @@ void MainWindow::SelectFilesAndRefreshLabels()
 
         // Haven't found a way to not just copy and paste for each label
         ui->N_FileNameLabel->setText(files);
-        ui->R_FileNameLabel->setText(files);
     }
+}
+
+LetterStruct MainWindow::ParseImapString(string inString)
+{
+    using namespace std;
+
+    LetterStruct result;
+
+    stringstream ss(inString);
+    string token;
+
+    while (ss >> token)
+    {
+        size_t fromPos = inString.find("FROM");
+        size_t toPos = inString.find("TO");
+        size_t subjectPos = inString.find("SUBJECT");
+        size_t sentPos = inString.find("SENT");
+
+        if (fromPos != string::npos)
+        {
+            string from_to_to = inString.substr(fromPos, toPos - fromPos);
+            size_t firstBracket = from_to_to.find("\"");
+            size_t lastBracket = from_to_to.find_last_of('"');
+
+            if (firstBracket != string::npos
+                && lastBracket != string::npos)
+            {
+                firstBracket++;
+
+                string from = from_to_to.substr(firstBracket, lastBracket - firstBracket);
+                result.sender = from.c_str();
+            }
+        }
+        if (toPos != std::string::npos)
+        {
+            string to_to_subject = inString.substr(toPos, subjectPos - toPos);
+            size_t firstBracket = to_to_subject.find("\"");
+            size_t lastBracket = to_to_subject.find_last_of('"');
+
+            if (firstBracket != string::npos
+                && lastBracket != string::npos)
+            {
+                firstBracket++;
+
+                string recipient = to_to_subject.substr(firstBracket, lastBracket - firstBracket);
+                result.recipient = recipient.c_str();
+            }
+        }
+        if (subjectPos != std::string::npos)
+        {
+            string subject_to_sent = inString.substr(subjectPos, sentPos - subjectPos);
+            size_t firstBracket = subject_to_sent.find("\"");
+            size_t lastBracket = subject_to_sent.find_last_of('"');
+
+            if (firstBracket != string::npos
+                && lastBracket != string::npos)
+            {
+                firstBracket++;
+
+                string subject = subject_to_sent.substr(firstBracket, lastBracket - firstBracket);
+                result.subject = subject.c_str();
+            }
+        }
+        if (sentPos != std::string::npos)
+        {
+            string sent_to_end = inString.substr(sentPos, inString.size());
+            size_t firstBracket = sent_to_end.find("\"");
+            size_t lastBracket = sent_to_end.find_last_of('"');
+
+            if (firstBracket != string::npos
+                && lastBracket != string::npos)
+            {
+                firstBracket++;
+                lastBracket--;
+
+                string sentAt = sent_to_end.substr(firstBracket, lastBracket - firstBracket);
+                result.timestamp = sentAt.c_str();
+            }
+        }
+    }
+
+    return result;
 }
 
 void MainWindow::HistoryWidgetClicked(QVector<LetterStruct> related_letters)
@@ -385,3 +359,9 @@ void MainWindow::SpawnNewHistoryUnit(Args&&... args)
         connect(new_history_unit, SIGNAL(OnMouseReleased(QVector<LetterStruct>)), this, SLOT(HistoryWidgetClicked(QVector<LetterStruct>)));
     }
 }
+
+void MainWindow::on_ReloadHistoryButton_released()
+{
+    PopulateMailsHistory();
+}
+

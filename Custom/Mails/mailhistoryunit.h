@@ -13,7 +13,7 @@ struct LetterStruct
     LetterStruct(){}
 
     LetterStruct(const QString& _sender, const QString& _recipient
-                 , const QDate& _timestamp, const QString& _subject
+                 , const QString& _timestamp, const QString& _subject
                  , const QString& _body, const QVector<QString>& _files_paths)
         : sender(_sender)
         , recipient(_recipient)
@@ -25,7 +25,7 @@ struct LetterStruct
 
     inline QString GenerateFileName() const
     {
-        return QString(sender + "_" + recipient + "_" + timestamp.toString("dd-MM-yyyy") + ".txt");
+        return QString(sender + "_" + recipient + "_" + timestamp + ".txt");
     }
 
     operator QString() const
@@ -36,31 +36,13 @@ struct LetterStruct
             attached_files = "\n\nAttached files: \n";
             attached_files += files_paths.join(";\n");
         }
-        return "From: " + sender + "\nTo: " + recipient + "\nSent at: " + timestamp.toString()
+        return "From: " + sender + "\nTo: " + recipient + "\nSent at: " + timestamp
                + "\nSubject: " + subject + "\n\n" + body + attached_files;
-    }
-
-    friend QDataStream& operator<<(QDataStream& out, const LetterStruct& myStruct)
-    {
-        QString files_representation = myStruct.files_paths.join("; ");
-        out << myStruct.sender << myStruct.recipient << myStruct.timestamp << myStruct.subject << myStruct.body << files_representation;
-        return out;
-    }
-
-    friend QDataStream& operator>>(QDataStream& in, LetterStruct& myStruct)
-    {
-        QString files_representation{};
-
-        in >> myStruct.sender >> myStruct.recipient >> myStruct.timestamp >> myStruct.subject >> myStruct.body >> files_representation;
-
-        QStringList files_list = files_representation.split("; ");
-        myStruct.files_paths.append(files_list);
-        return in;
     }
 
     QString sender{};
     QString recipient{};
-    QDate timestamp{};
+    QString timestamp{};
     QString subject{};
     QString body{};
     QVector<QString> files_paths{};

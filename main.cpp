@@ -22,12 +22,12 @@ int main(int argc, char *argv[])
     });
 
     std::shared_ptr<ISXSC::SmtpClient> smtp_client = std::make_shared<ISXSC::SmtpClient>(io_context, ssl_context);
-    // std::shared_ptr<ISXICI::ImapClient> imap_client = std::make_shared<ISXICI::ImapClient>(io_context, ssl_context);
+    std::shared_ptr<ISXICI::ImapClient> imap_client = std::make_shared<ISXICI::ImapClient>(io_context, ssl_context);
     // imap_client->test();
 
 
     QApplication a(argc, argv);
-    MainWindow w(nullptr, smtp_client);
+    MainWindow w(nullptr, smtp_client, imap_client);
     w.show();
     a.exec();
 
