@@ -19,6 +19,12 @@ FetchContent_Declare(
     GIT_TAG       windows-pre-demo-lib)
 FetchContent_MakeAvailable(client)
 
+FetchContent_Declare(
+    client_i
+    GIT_REPOSITORY https://github.com/UA-1240-C/imap-client
+    GIT_TAG       lib)
+FetchContent_MakeAvailable(client_i)
+
 set(PROJECT_SOURCES
         main.cpp
         mainwindow.cpp
@@ -52,7 +58,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(SMTP-Full PRIVATE Qt${QT_VERSION_MAJOR}::Widgets client)
+target_link_libraries(SMTP-Full PRIVATE Qt${QT_VERSION_MAJOR}::Widgets client client_imap)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
