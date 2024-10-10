@@ -248,12 +248,15 @@ LetterStruct MainWindow::ParseImapString(string inString)
     stringstream ss(inString);
     string token;
 
+    string lowerInString = inString;
+    std::transform(lowerInString.begin(), lowerInString.end(), lowerInString.begin(), ::tolower);
+
     while (ss >> token)
     {
-        size_t fromPos = inString.find("FROM");
-        size_t toPos = inString.find("TO");
-        size_t subjectPos = inString.find("SUBJECT");
-        size_t sentPos = inString.find("SENT");
+        size_t fromPos = lowerInString.find("from");
+        size_t toPos = lowerInString.find("to");
+        size_t subjectPos = lowerInString.find("subject");
+        size_t sentPos = lowerInString.find("sent");
 
         if (fromPos != string::npos)
         {
