@@ -69,7 +69,7 @@ private:
 
     void SelectFilesAndRefreshLabels();
 
-    LetterStruct ParseImapString(std::string inString);
+    void ParseImapString(std::string inString);
 
     std::weak_ptr<ISXSC::SmtpClient> m_smtp_client;
     std::weak_ptr<ISXICI::ImapClient> m_imap_client;
@@ -79,5 +79,7 @@ private:
     const QString m_temp_file_path{R"*(D:\SoftServe\Temp\)*"};
     QVector<QString> m_currently_selected_files{};
     MailHistoryUnit* m_current_history_unit{};
+
+    void FetchMail();
 };
 #endif // MAINWINDOW_H

@@ -8,6 +8,7 @@
 #include "Custom/Mails/mailhistoryunit.h"
 #include "SmtpClient.h"
 #include "MailMessageBuilder.h"
+#include <QRegularExpression>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -62,8 +63,11 @@ void MainWindow::on_LogInButton_released()
         auto server_part = m_current_server.toStdString().substr(0, colon_index);
         auto port_part = m_current_server.toStdString().substr(colon_index + 1);
 
-        m_smtp_client.lock()->AsyncConnect(server_part, stoi(port_part)).get();
+        m_smtp_client.lock()->AsyncConnect(server_part, std::stoi(port_part)).get();
         m_smtp_client.lock()->AsyncAuthenticate(m_current_user.toStdString(), m_current_password.toStdString()).get();
+
+        m_imap_client.lock()->AsyncConnect("localhost", 2526).get();
+        m_imap_client.lock()->AsyncLogin(m_current_user.toStdString(), m_current_password.toStdString()).get();
 
         ui->MainPagesStack->setCurrentIndex((int)EMainPagesIndex::MainPage);
         ui->UserEmailLabel->setText(m_current_user);
@@ -138,7 +142,8 @@ void MainWindow::on_NewLetterButton_released()
 
 void MainWindow::SelectLetters_Slot()
 {
-    SelectFilesAndRefreshLabels();
+    FetchMail();
+    PopulateMailsHistory();
 }
 
 bool MainWindow::isValidEmail(const QString& email)
@@ -207,12 +212,9 @@ void MainWindow::PopulateMailsHistory()
     }
 
     std::vector<string> Inbox = m_imap_client.lock()->getInbox();
-
-    for (const string& Letter : Inbox)
-    {
-        LetterStruct letterStruct = ParseImapString(Letter);
-        SpawnNewHistoryUnit(letterStruct);
-    }
+    std::string s = "";
+    for (const auto &piece : Inbox) s += piece;
+    ParseImapString(s);
 }
 
 void MainWindow::SendLetter(const LetterStruct& Letter)
@@ -239,89 +241,30 @@ void MainWindow::SelectFilesAndRefreshLabels()
     }
 }
 
-LetterStruct MainWindow::ParseImapString(string inString)
+void MainWindow::ParseImapString(string inString)
 {
-    using namespace std;
+    QVector<LetterStruct> letters;
 
-    LetterStruct result;
+    QRegularExpression regex(R"(FROM \"(.+?)\" TO \"(.+?)\" SUBJECT \"(.+?)\" SENT \"(.+?)\")");
+    QRegularExpressionMatchIterator i = regex.globalMatch(QString::fromUtf8(inString.c_str()));
 
-    stringstream ss(inString);
-    string token;
+    while (i.hasNext()) {
+        QRegularExpressionMatch match = i.next();
+        if (match.hasMatch()) {
+            QString sender = match.captured(1);
+            QString recipient = match.captured(2);
+            QString subject = match.captured(3);
+            QString timestamp = match.captured(4);
 
-    string lowerInString = inString;
-    std::transform(lowerInString.begin(), lowerInString.end(), lowerInString.begin(), ::tolower);
-
-    while (ss >> token)
-    {
-        size_t fromPos = lowerInString.find("from");
-        size_t toPos = lowerInString.find("to");
-        size_t subjectPos = lowerInString.find("subject");
-        size_t sentPos = lowerInString.find("sent");
-
-        if (fromPos != string::npos)
-        {
-            string from_to_to = inString.substr(fromPos, toPos - fromPos);
-            size_t firstBracket = from_to_to.find("\"");
-            size_t lastBracket = from_to_to.find_last_of('"');
-
-            if (firstBracket != string::npos
-                && lastBracket != string::npos)
-            {
-                firstBracket++;
-
-                string from = from_to_to.substr(firstBracket, lastBracket - firstBracket);
-                result.sender = from.c_str();
-            }
-        }
-        if (toPos != std::string::npos)
-        {
-            string to_to_subject = inString.substr(toPos, subjectPos - toPos);
-            size_t firstBracket = to_to_subject.find("\"");
-            size_t lastBracket = to_to_subject.find_last_of('"');
-
-            if (firstBracket != string::npos
-                && lastBracket != string::npos)
-            {
-                firstBracket++;
-
-                string recipient = to_to_subject.substr(firstBracket, lastBracket - firstBracket);
-                result.recipient = recipient.c_str();
-            }
-        }
-        if (subjectPos != std::string::npos)
-        {
-            string subject_to_sent = inString.substr(subjectPos, sentPos - subjectPos);
-            size_t firstBracket = subject_to_sent.find("\"");
-            size_t lastBracket = subject_to_sent.find_last_of('"');
-
-            if (firstBracket != string::npos
-                && lastBracket != string::npos)
-            {
-                firstBracket++;
-
-                string subject = subject_to_sent.substr(firstBracket, lastBracket - firstBracket);
-                result.subject = subject.c_str();
-            }
-        }
-        if (sentPos != std::string::npos)
-        {
-            string sent_to_end = inString.substr(sentPos, inString.size());
-            size_t firstBracket = sent_to_end.find("\"");
-            size_t lastBracket = sent_to_end.find_last_of('"');
-
-            if (firstBracket != string::npos
-                && lastBracket != string::npos)
-            {
-                firstBracket++;
-                lastBracket--;
-
-                string sentAt = sent_to_end.substr(firstBracket, lastBracket - firstBracket);
-                result.timestamp = sentAt.c_str();
-            }
+            // Для прикладу, body залишається порожнім і немає прикріплених файлів
+            letters.append(LetterStruct(sender, recipient, timestamp, subject, "", {}));
         }
     }
 
-    return result;
+    for (auto i : letters)
+    {
+        SpawnNewHistoryUnit(i);
+    }
 }
 
 void MainWindow::HistoryWidgetClicked(QVector<LetterStruct> related_letters)
@@ -368,3 +311,7 @@ void MainWindow::on_ReloadHistoryButton_released()
     PopulateMailsHistory();
 }
 
+void MainWindow::FetchMail()
+{
+    m_imap_client.lock()->AsyncFetchMail("1:max", "ENVELOPE").get();
+}
